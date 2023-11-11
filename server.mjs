@@ -43,7 +43,6 @@ io.on('connection', socket => {
         console.log(users)
     })
     socket.on('do-roll', activePlayer => {
-        console.log('do-roll request received')
         const randomNum = Math.ceil(Math.random() * 6)
         // const randomNum = 1
         if(randomNum === 1) {

@@ -9,7 +9,8 @@ export const EVENTS = deepFreeze({
     DO_ROLL: "do-roll",
     DO_HOLD: "do-hold",
     // From Server //
-    CONNECT: "connect",
+    PLAYER_CONNECT: "player-connect",
+    PLAYER_DISCONNECT: "player-disconnect",
     ATTEMPT_PLAY_RESPONSE: "attempt-play-response",
     ATTEMPT_PLAY_RESPONSE_TYPES: {
         WAITING: "waiting",

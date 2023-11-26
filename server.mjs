@@ -75,5 +75,6 @@ io.on(E.CONNECTION, socket => {
     })
     socket.on(E.DISCONNECT, () => {
         delete users[socket.id]
+        io.emit(E.PLAYER_DISCONNECT)
     })
 })

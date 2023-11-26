@@ -4,11 +4,12 @@
   "description": "",
   "main": "server.mjs",
   "scripts": {
-    "serverStart": "nodemon server/server.mjs"
+    "start": "nodemon server.mjs"
   },
   "author": "Frank Smith",
   "license": "ISC",
   "dependencies": {
+    "deep-freeze": "^0.0.1",
     "socket.io": "^4.7.2",
     "socket.io-client": "^4.7.2"
   },

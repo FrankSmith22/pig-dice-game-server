@@ -1,5 +1,6 @@
 import { Server } from "socket.io"
 import { createServer } from 'http'
+import { EVENTS as E} from "./events.mjs"
 
 const httpServer = createServer()
 
@@ -11,57 +12,68 @@ const io = new Server(4000, {
 
 const users = {}
 
-io.on('connection', socket => {
+io.on(E.CONNECTION, socket => {
     console.log('client connected: ' + socket.id)
-    socket.on('attempt-play', playerName => {
+    socket.on(E.ATTEMPT_PLAY, playerName => {
         console.log(`===\nPlayer name ${playerName} wants to play!`)
-        console.log(`Number of users: ${Object.keys(users).length}`)
-        if(Object.keys(users).length === 0) { // TODO turn this into switch case
-            // Tell user to wait till another joins
-            console.log("Readied up, waiting for another player to join")
-            users[socket.id] = playerName
-            socket.emit('attempt-play-response', {msg: 'waiting', playerNames: Object.values(users)}) // TODO make enum
-        }
-        else if(Object.keys(users).length === 1) {
-            if(users[socket.id]){
-                // This client is already connected, don't start
-                console.log('client hit start button more than once')
-                return
-            }
-            // Tell user game is starting
-            console.log("Readied up, game is starting")
-            users[socket.id] = playerName
-            io.emit('attempt-play-response', {msg: 'starting', playerNames: Object.values(users)}) // TODO make enum
-            io.emit('set-active-player', Object.values(users)[0])
-
-        }
-        else if(Object.keys(users).length === 2) {
-            // Tell user there are already 2 players
-            console.log("Sorry, there are already two users playing")
-            socket.emit('attempt-play-response', {msg: 'full', playerNames: Object.values(users)}) // TODO make enum
+        const usersLen = Object.keys(users).length
+        console.log(`Number of users: ${usersLen}`)
+        switch(usersLen){
+            case 0:
+                console.log("Readied up, waiting for another player to join")
+                users[socket.id] = playerName
+                socket.emit(E.ATTEMPT_PLAY_RESPONSE, {
+                    msg: E.ATTEMPT_PLAY_RESPONSE_TYPES.WAITING,
+                    playerNames: Object.values(users)
+                })
+                break;
+            case 1:
+                if(users[socket.id]){
+                    // This client is already connected, don't start
+                    console.log('client hit start button more than once')
+                    return
+                }
+                // Tell user game is starting
+                console.log("Readied up, game is starting")
+                users[socket.id] = playerName
+                io.emit(E.ATTEMPT_PLAY_RESPONSE, {
+                    msg: E.ATTEMPT_PLAY_RESPONSE_TYPES.STARTING,
+                    playerNames: Object.values(users)
+                })
+                io.emit(E.SET_ACTIVE_PLAYER, Object.values(users)[0])
+                break;
+            case 2:
+                console.log("Sorry, there are already two users playing")
+                socket.emit(E.ATTEMPT_PLAY_RESPONSE, {
+                    msg: E.ATTEMPT_PLAY_RESPONSE_TYPES.FULL,
+                    playerNames: Object.values(users)
+                })
+                break;
+            default:
+                break;
         }
         console.log(users)
     })
-    socket.on('do-roll', activePlayer => {
+    socket.on(E.DO_ROLL, activePlayer => {
         const randomNum = Math.ceil(Math.random() * 6)
         // const randomNum = 1
         if(randomNum === 1) {
             // set active player to other player
             const newActivePlayer = Object.values(users).filter(name => name !== activePlayer)[0]
             console.log(newActivePlayer)
-            io.emit('set-active-player', newActivePlayer)
+            io.emit(E.SET_ACTIVE_PLAYER, newActivePlayer)
         }
-        io.emit('update-score', {player: activePlayer, updateScore: randomNum})
+        io.emit(E.UPDATE_SCORE, {player: activePlayer, updateScore: randomNum})
     })
-    socket.on('do-hold', ({activePlayer, points}) => {
+    socket.on(E.DO_HOLD, ({activePlayer, points}) => {
         console.log('do-hold request received')
-        io.emit('update-score', {player: activePlayer, updateScore: 1}) // will trigger resetScore dispatch client-side
-        io.emit('update-total-score', {player: activePlayer, updateTotalScore: points})
+        io.emit(E.UPDATE_SCORE, {player: activePlayer, updateScore: 1}) // will trigger resetScore dispatch client-side
+        io.emit(E.UPDATE_TOTAL_SCORE, {player: activePlayer, updateTotalScore: points})
         const newActivePlayer = Object.values(users).filter(name => name !== activePlayer)[0]
-        io.emit('set-active-player', newActivePlayer)
+        io.emit(E.SET_ACTIVE_PLAYER, newActivePlayer)
         
     })
-    socket.on('disconnect', () => {
+    socket.on(E.DISCONNECT, () => {
         delete users[socket.id]
     })
 })

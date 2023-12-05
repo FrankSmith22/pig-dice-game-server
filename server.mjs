@@ -6,7 +6,7 @@ const httpServer = createServer()
 
 const io = new Server(4000, {
     cors: {
-        origin: ["http://localhost:3000", "http://192.168.1.169:3000"]
+        origin: ["http://localhost:3000", "http://192.168.1.169:3000", "http://192.168.1.155:3000"]
     }
 })
 
@@ -21,10 +21,10 @@ io.on(E.CONNECTION, socket => {
         switch(usersLen){
             case 0:
                 console.log("Readied up, waiting for another player to join")
-                users[socket.id] = playerName
+                users[socket.id] = {playerName, wantsRematch: false}
                 socket.emit(E.ATTEMPT_PLAY_RESPONSE, {
                     msg: E.ATTEMPT_PLAY_RESPONSE_TYPES.WAITING,
-                    playerNames: Object.values(users)
+                    playerNames: Object.values(users).map(userObj => userObj.playerName)
                 })
                 break;
             case 1:
@@ -35,18 +35,18 @@ io.on(E.CONNECTION, socket => {
                 }
                 // Tell user game is starting
                 console.log("Readied up, game is starting")
-                users[socket.id] = playerName
+                users[socket.id] = {playerName, wantsRematch: false}
                 io.emit(E.ATTEMPT_PLAY_RESPONSE, {
                     msg: E.ATTEMPT_PLAY_RESPONSE_TYPES.STARTING,
-                    playerNames: Object.values(users)
+                    playerNames: Object.values(users).map(userObj => userObj.playerName)
                 })
-                io.emit(E.SET_ACTIVE_PLAYER, Object.values(users)[0])
+                io.emit(E.SET_ACTIVE_PLAYER, Object.values(users)[0].playerName)
                 break;
             case 2:
                 console.log("Sorry, there are already two users playing")
                 socket.emit(E.ATTEMPT_PLAY_RESPONSE, {
                     msg: E.ATTEMPT_PLAY_RESPONSE_TYPES.FULL,
-                    playerNames: Object.values(users)
+                    playerNames: Object.values(users).map(userObj => userObj.playerName)
                 })
                 break;
             default:
@@ -59,7 +59,7 @@ io.on(E.CONNECTION, socket => {
         // const randomNum = 1
         if(randomNum === 1) {
             // set active player to other player
-            const newActivePlayer = Object.values(users).filter(name => name !== activePlayer)[0]
+            const newActivePlayer = Object.values(users).filter(userObj => userObj.playerName !== activePlayer)[0]
             console.log(newActivePlayer)
             io.emit(E.SET_ACTIVE_PLAYER, newActivePlayer)
         }
@@ -69,9 +69,18 @@ io.on(E.CONNECTION, socket => {
         console.log('do-hold request received')
         io.emit(E.UPDATE_SCORE, {player: activePlayer, updateScore: 1}) // will trigger resetScore dispatch client-side
         io.emit(E.UPDATE_TOTAL_SCORE, {player: activePlayer, updateTotalScore: points})
-        const newActivePlayer = Object.values(users).filter(name => name !== activePlayer)[0]
+        const newActivePlayer = Object.values(users).filter(userObj => userObj.playerName !== activePlayer)[0]
         io.emit(E.SET_ACTIVE_PLAYER, newActivePlayer)
         
+    })
+    socket.on(E.ATTEMPT_REMATCH, ({ player }) => {
+        users[socket.id].wantsRematch = true
+        if(Object.values(users).find(userObj => userObj.playerName !== player).wantsRematch){
+            io.emit(E.ATTEMPT_PLAY_RESPONSE, {
+                msg: E.ATTEMPT_PLAY_RESPONSE_TYPES.STARTING,
+                playerNames: Object.values(users).map(userObj => userObj.playerName)
+            })
+        }
     })
     socket.on(E.DISCONNECT, () => {
         delete users[socket.id]

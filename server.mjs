@@ -59,7 +59,7 @@ io.on(E.CONNECTION, socket => {
         // const randomNum = 1
         if(randomNum === 1) {
             // set active player to other player
-            const newActivePlayer = Object.values(users).filter(userObj => userObj.playerName !== activePlayer)[0]
+            const newActivePlayer = Object.values(users).filter(userObj => userObj.playerName !== activePlayer)[0].playerName
             console.log(newActivePlayer)
             io.emit(E.SET_ACTIVE_PLAYER, newActivePlayer)
         }

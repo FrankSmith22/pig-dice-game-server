@@ -69,17 +69,17 @@ io.on(E.CONNECTION, socket => {
         console.log('do-hold request received')
         io.emit(E.UPDATE_SCORE, {player: activePlayer, updateScore: 1}) // will trigger resetScore dispatch client-side
         io.emit(E.UPDATE_TOTAL_SCORE, {player: activePlayer, updateTotalScore: points})
-        const newActivePlayer = Object.values(users).filter(userObj => userObj.playerName !== activePlayer)[0]
+        const newActivePlayer = Object.values(users).filter(userObj => userObj.playerName !== activePlayer)[0].playerName
         io.emit(E.SET_ACTIVE_PLAYER, newActivePlayer)
         
     })
-    socket.on(E.ATTEMPT_REMATCH, ({ player }) => {
+    socket.on(E.ATTEMPT_REMATCH, () => {
         users[socket.id].wantsRematch = true
-        if(Object.values(users).find(userObj => userObj.playerName !== player).wantsRematch){
-            io.emit(E.ATTEMPT_PLAY_RESPONSE, {
-                msg: E.ATTEMPT_PLAY_RESPONSE_TYPES.STARTING,
-                playerNames: Object.values(users).map(userObj => userObj.playerName)
-            })
+        if(Object.values(users).every(userObj => userObj.wantsRematch)){
+            console.log("Both players want rematch!")
+            Object.values(users).forEach(userObj => userObj.wantsRematch = false)
+            io.emit(E.BEGIN_REMATCH)
+            io.emit(E.SET_ACTIVE_PLAYER, Object.values(users)[0].playerName)
         }
     })
     socket.on(E.DISCONNECT, () => {

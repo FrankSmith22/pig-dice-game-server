@@ -21,5 +21,6 @@ export const EVENTS = deepFreeze({
     SET_ACTIVE_PLAYER: "set-active-player",
     UPDATE_SCORE: "update-score",
     UPDATE_TOTAL_SCORE: "update-total-score",
+    PLAYER_WANTS_REMATCH: "player-wants-rematch",
     BEGIN_REMATCH: "begin-rematch"
 })

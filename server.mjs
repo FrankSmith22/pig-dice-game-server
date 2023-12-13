@@ -6,7 +6,7 @@ const httpServer = createServer()
 
 const io = new Server(4000, {
     cors: {
-        origin: ["http://localhost:3000", "http://192.168.1.169:3000", "http://192.168.1.155:3000"]
+        origin: ["http://localhost:3000", "http://192.168.1.169:3000", "http://192.168.1.155:3000", "https://franksmith22.github.io"]
     }
 })
 

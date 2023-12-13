@@ -49,13 +49,12 @@ io.on(E.CONNECTION, socket => {
     })
     socket.on(E.DO_ROLL, activePlayer => {
         const randomNum = Math.ceil(Math.random() * 6)
-        // const randomNum = 1
+        io.emit(E.UPDATE_SCORE, {player: activePlayer, updateScore: randomNum})
         if(randomNum === 1) {
             // set active player to other player
             const newActivePlayer = Object.values(users).filter(userObj => userObj.playerName !== activePlayer)[0].playerName
-            io.emit(E.SET_ACTIVE_PLAYER, newActivePlayer)
+            setTimeout(() => io.emit(E.SET_ACTIVE_PLAYER, newActivePlayer), 1500)
         }
-        io.emit(E.UPDATE_SCORE, {player: activePlayer, updateScore: randomNum})
     })
     socket.on(E.DO_HOLD, ({activePlayer, points}) => {
         io.emit(E.UPDATE_SCORE, {player: activePlayer, updateScore: 1}) // will trigger resetScore dispatch client-side

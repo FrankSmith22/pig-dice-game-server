@@ -47,9 +47,9 @@ io.on(E.CONNECTION, socket => {
                 break;
         }
     })
-    socket.on(E.DO_ROLL, activePlayer => {
+    socket.on(E.DO_ROLL, ({activePlayer, latestRoll}) => {
         const randomNum = Math.ceil(Math.random() * 6)
-        io.emit(E.UPDATE_SCORE, {player: activePlayer, updateScore: randomNum})
+        io.emit(E.UPDATE_SCORE, {player: activePlayer, updateScore: randomNum, prevRoll: latestRoll})
         if(randomNum === 1) {
             // set active player to other player
             const newActivePlayer = Object.values(users).filter(userObj => userObj.playerName !== activePlayer)[0].playerName
@@ -57,7 +57,7 @@ io.on(E.CONNECTION, socket => {
         }
     })
     socket.on(E.DO_HOLD, ({activePlayer, points}) => {
-        io.emit(E.UPDATE_SCORE, {player: activePlayer, updateScore: 1}) // will trigger resetScore dispatch client-side
+        io.emit(E.UPDATE_SCORE, {player: activePlayer, updateScore: 1, prevRoll: null}) // will trigger resetScore dispatch client-side
         io.emit(E.UPDATE_TOTAL_SCORE, {player: activePlayer, updateTotalScore: points})
         const newActivePlayer = Object.values(users).filter(userObj => userObj.playerName !== activePlayer)[0].playerName
         io.emit(E.SET_ACTIVE_PLAYER, newActivePlayer)
